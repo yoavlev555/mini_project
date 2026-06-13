@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Cursor agent skills (local only — not shared via git)
+.cursor/skills/
+
+# Generated experiment output
+results/
+
+# Local optional backlog (not shared via git)
+FUTURE_WORK.md
