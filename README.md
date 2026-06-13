@@ -136,17 +136,31 @@ n, stream = grid_stream(rows=8, cols=8, seed=0)
 All generators return edges in a **random order** (simulating the streaming
 model where edges arrive in an arbitrary permutation).
 
-### `verify_spanner` function
+### `verify_spanner` and `verify_spanner_all_pairs`
 
-Checks the stretch guarantee using BFS. For every edge `(u, v)` in the
-original graph, it verifies that `dist_H(u, v) ≤ 2t−1`.
+**Edge check** (`verify_spanner`): for every edge in the original graph, verifies
+`dist_H(u, v) <= 2t-1`.
+
+**All-pairs check** (`verify_spanner_all_pairs`): for every connected pair
+`(u, v)`, verifies `dist_H(u, v) <= (2t-1) * dist_G(u, v)`. Used in `demo.py`
+when `n <= 200`.
 
 ```python
-from streaming_spanner import verify_spanner
+from streaming_spanner import verify_spanner, verify_spanner_all_pairs
 
-is_valid, max_dist = verify_spanner(spanner, original_edges, t)
-# is_valid : True if the spanner satisfies the stretch bound
-# max_dist : largest spanner distance observed for any adjacent pair
+is_valid, max_dist = verify_spanner(H, stream, t)
+all_valid, max_ratio = verify_spanner_all_pairs(H, stream, n, t)
+```
+
+### `theoretical_spanner_bound`
+
+Returns an illustrative paper size estimate (constant `c=3`) for comparing
+actual spanner size to Corollary 3.6 — not a proof certificate.
+
+```python
+from streaming_spanner import theoretical_spanner_bound
+
+estimate = theoretical_spanner_bound(n=100, t=2)
 ```
 
 ---
@@ -154,24 +168,35 @@ is_valid, max_dist = verify_spanner(spanner, original_edges, t)
 ## Running the Demo
 
 ```bash
-python3 streaming_spanner.py
+python demo.py
 ```
 
 Expected output (results are randomized, but all checks should PASS):
 
 ```
 ================================================================
-  Elkin 2011 – Streaming Spanner Simulation
+  Elkin 2011 - Streaming Spanner Simulation
   (2t-1)-spanner, one pass, O(1) per edge
 ================================================================
 
   Complete K_15, t=2
-    n=15, t=2, guaranteed stretch ≤ 3, p≈0.4249
-    stream size  : 105
-    spanner size : 55  (tree=12, cross=43, dropped=50)
-    stretch check: PASS ✓  (max dist in spanner for adjacent pairs = 2)
+    n=15, t=2, guaranteed stretch <= 3, p~0.4249
+    stream size       : 105
+    spanner size      : 55  (tree=12, cross=43, dropped=50)
+    paper estimate    : ~60  (ratio actual/estimate = 0.917)
+    edge stretch check: PASS  (max dist for adjacent pairs = 2)
+    all-pairs check   : PASS  (max stretch ratio = 1.000)
   ...
 ```
+
+### Plotting spanner size vs n
+
+```bash
+python plot_results.py
+```
+
+Writes `results/spanner_sizes.csv`. If matplotlib is installed
+(`pip install -r requirements-dev.txt`), also writes `results/spanner_sizes.png`.
 
 ---
 
@@ -193,8 +218,8 @@ print(algo.stats())
 #  'cross_edges': 71, 'dropped_edges': 103}
 
 valid, max_d = verify_spanner(H, stream, t)
-print(f"Valid: {valid}, max stretch distance: {max_d}")
-# Valid: True, max stretch distance: 3
+all_valid, max_ratio = verify_spanner_all_pairs(H, stream, n, t)
+print(f"Edge check: {valid}, all-pairs: {all_valid}, max ratio: {max_ratio:.3f}")
 ```
 
 ---
@@ -203,14 +228,21 @@ print(f"Valid: {valid}, max stretch distance: {max_d}")
 
 | File | Description |
 |------|-------------|
-| `streaming_spanner.py` | `StreamingSpanner` class + `verify_spanner` (core algorithm) |
+| `streaming_spanner.py` | `StreamingSpanner` class + verification helpers |
 | `stream_generators.py` | Graph generators: complete, Erdős–Rényi, grid, path |
 | `demo.py` | Runs experiments across graph types — entry point |
+| `plot_results.py` | CSV/plot of spanner size vs n on complete graphs |
+| `requirements-dev.txt` | Optional matplotlib for plotting |
 | `Arcticle.pdf` | The original paper (Elkin 2011) |
 | `README.md` | This file |
+
+Local-only files (gitignored, not in the repo): `FUTURE_WORK.md` optional
+backlog and `.cursor/skills/` agent skills.
 
 ---
 
 ## Requirements
 
-Python 3.7+ standard library only (no external dependencies).
+**Core:** Python 3.7+ standard library only (`demo.py`, `streaming_spanner.py`).
+
+**Optional plotting:** `pip install -r requirements-dev.txt` then `python plot_results.py`.
