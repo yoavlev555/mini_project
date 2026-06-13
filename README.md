@@ -165,6 +165,22 @@ estimate = theoretical_spanner_bound(n=100, t=2)
 
 ---
 
+## Interactive simulator (web UI)
+
+Step-by-step visual simulator for Algorithm 1: you choose **n**, **t**, and **seed**, then click two vertices to stream an edge and see **tree / cross / drop** in real time.
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Open the URL shown (usually `http://localhost:5173`). Green solid = tree edge, red dashed = cross edge; dropped edges appear in the log only.
+
+The UI uses a TypeScript port of `StreamingSpanner` (`web/src/algorithm/streamingSpanner.ts`) aligned with the Python implementation.
+
+---
+
 ## Running the Demo
 
 ```bash
@@ -230,7 +246,8 @@ print(f"Edge check: {valid}, all-pairs: {all_valid}, max ratio: {max_ratio:.3f}"
 |------|-------------|
 | `streaming_spanner.py` | `StreamingSpanner` class + verification helpers |
 | `stream_generators.py` | Graph generators: complete, Erdős–Rényi, grid, path |
-| `demo.py` | Runs experiments across graph types — entry point |
+| `demo.py` | Batch regression experiments (fixed suite) |
+| `web/` | Interactive step-by-step simulator (React + Vite) |
 | `plot_results.py` | CSV/plot of spanner size vs n on complete graphs |
 | `requirements-dev.txt` | Optional matplotlib for plotting |
 | `Arcticle.pdf` | The original paper (Elkin 2011) |
@@ -246,3 +263,5 @@ backlog and `.cursor/skills/` agent skills.
 **Core:** Python 3.7+ standard library only (`demo.py`, `streaming_spanner.py`).
 
 **Optional plotting:** `pip install -r requirements-dev.txt` then `python plot_results.py`.
+
+**Web UI:** Node.js 18+ for `web/` (`npm install`, `npm run dev`).
