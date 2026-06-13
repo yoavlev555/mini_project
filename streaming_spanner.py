@@ -8,8 +8,10 @@ Core implementation of Elkin 2011 (Sections 3.1–3.4):
     ACM Trans. Algor. 7, 2, Article 20.
 
 Contains:
-  - StreamingSpanner : the streaming algorithm (Algorithm 1)
-  - verify_spanner   : BFS-based stretch verifier
+  - StreamingSpanner           : the streaming algorithm (Algorithm 1)
+  - verify_spanner             : BFS stretch check on adjacent pairs
+  - verify_spanner_all_pairs   : full (2t-1)-spanner check on all vertex pairs
+  - theoretical_spanner_bound  : illustrative paper size estimate
 """
 
 from __future__ import annotations
@@ -183,22 +185,108 @@ class StreamingSpanner:
     def stats(self) -> dict:
         """Return a summary of algorithm statistics."""
         c = self._cnt
+        size = len(self.spanner())
+        bound = theoretical_spanner_bound(self.n, self.t)
         return {
-            'n':             self.n,
-            't':             self.t,
-            'stretch_bound': 2 * self.t - 1,
-            'p':             round(self.p, 6),
-            'edges_seen':    c['seen'],
-            'spanner_size':  len(self.spanner()),
-            'tree_edges':    c['tree'],
-            'cross_edges':   c['cross'],
-            'dropped_edges': c['drop'],
+            'n':                 self.n,
+            't':                 self.t,
+            'stretch_bound':     2 * self.t - 1,
+            'p':                 round(self.p, 6),
+            'edges_seen':        c['seen'],
+            'spanner_size':      size,
+            'theoretical_bound': bound,
+            'bound_ratio':       round(size / bound, 3) if bound else 0.0,
+            'tree_edges':        c['tree'],
+            'cross_edges':       c['cross'],
+            'dropped_edges':     c['drop'],
         }
 
 
 # ============================================================================
-# verify_spanner — BFS stretch checker
+# Theoretical bounds and verification
 # ============================================================================
+
+_INF = 10 ** 9
+_THEORETICAL_BOUND_C = 3.0  # illustrative constant for experiment reporting only
+
+
+def theoretical_spanner_bound(n: int, t: int, c: float = _THEORETICAL_BOUND_C) -> int:
+    """
+    Illustrative whp size estimate from Corollary 3.6 (Elkin 2011):
+
+        O(t * n^(1 + 1/t) * (log n)^(1 - 1/t))
+
+    The constant ``c`` is for demo/report comparison only — not a proof certificate.
+    """
+    log_n = math.log(max(n, 2))
+    return max(1, int(c * t * (n ** (1 + 1 / t)) * (log_n ** (1 - 1 / t))))
+
+
+def _build_adj(
+    edges: List[Tuple[int, int]], n: int
+) -> Dict[int, Set[int]]:
+    adj: Dict[int, Set[int]] = defaultdict(set)
+    for u, v in edges:
+        adj[u].add(v)
+        adj[v].add(u)
+    for v in range(1, n + 1):
+        _ = adj[v]
+    return adj
+
+
+def _all_pairs_distances(adj: Dict[int, Set[int]], n: int) -> List[List[int]]:
+    """BFS from every vertex; unreachable pairs stay at _INF."""
+    dist = [[_INF] * (n + 1) for _ in range(n + 1)]
+    for src in range(1, n + 1):
+        dist[src][src] = 0
+        q: deque = deque([src])
+        while q:
+            u = q.popleft()
+            for v in adj[u]:
+                if dist[src][v] == _INF:
+                    dist[src][v] = dist[src][u] + 1
+                    q.append(v)
+    return dist
+
+
+def verify_spanner_all_pairs(
+    spanner: Set[Tuple[int, int]],
+    original_edges: List[Tuple[int, int]],
+    n: int,
+    t: int,
+) -> Tuple[bool, float]:
+    """
+    Verify the full (2t-1)-spanner guarantee for all connected vertex pairs.
+
+    For every u, v with finite dist_G(u, v), checks
+    dist_H(u, v) <= (2t - 1) * dist_G(u, v).
+
+    Returns (is_valid, max_stretch_ratio) where max_stretch_ratio is the
+    largest dist_H / dist_G observed (1.0 = perfect for that pair).
+    """
+    dist_g = _all_pairs_distances(_build_adj(original_edges, n), n)
+    dist_h = _all_pairs_distances(_build_adj(spanner, n), n)
+    max_stretch = 2 * t - 1
+    max_ratio = 0.0
+    valid = True
+
+    for u in range(1, n + 1):
+        for v in range(u + 1, n + 1):
+            dg = dist_g[u][v]
+            if dg >= _INF:
+                continue
+            dh = dist_h[u][v]
+            if dh >= _INF:
+                valid = False
+                return False, float('inf')
+            ratio = dh / dg
+            if ratio > max_ratio:
+                max_ratio = ratio
+            if dh > max_stretch * dg:
+                valid = False
+
+    return valid, max_ratio
+
 
 def verify_spanner(
     spanner: Set[Tuple[int, int]],
@@ -241,7 +329,7 @@ def verify_spanner(
                 if nb not in visited:
                     visited.add(nb)
                     q.append((nb, d + 1))
-        return 10 ** 9  # disconnected
+        return _INF  # disconnected
 
     target = 2 * t - 1
     max_d = 0
