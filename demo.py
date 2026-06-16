@@ -12,7 +12,6 @@ Usage
 from streaming_spanner import (
     StreamingSpanner,
     verify_spanner,
-    verify_spanner_all_pairs,
 )
 
 from stream_generators import (
@@ -22,8 +21,6 @@ from stream_generators import (
     path_stream,
 )
 
-FULL_VERIFY_MAX_N = 200
-
 
 def run_experiment(
     name: str,
@@ -31,7 +28,6 @@ def run_experiment(
     t: int,
     stream: list,
     seed: int = 0,
-    full_verify: bool = True,
 ) -> None:
     """Run one experiment and print formatted results."""
     algo = StreamingSpanner(n, t, seed=seed)
@@ -57,18 +53,6 @@ def run_experiment(
         f"    edge stretch check: {edge_status}"
         f"  (max dist for adjacent pairs = {max_edge_dist})"
     )
-
-    if full_verify and n <= FULL_VERIFY_MAX_N:
-        all_valid, max_ratio = verify_spanner_all_pairs(H, stream, n, t)
-        all_status = "PASS" if all_valid else "FAIL"
-        print(
-            f"    all-pairs check   : {all_status}"
-            f"  (max stretch ratio = {max_ratio:.3f})"
-        )
-    elif full_verify:
-        print(f"    all-pairs check   : SKIP (n={n} > {FULL_VERIFY_MAX_N})")
-    else:
-        print("    all-pairs check   : SKIP (disabled)")
 
 
 def main() -> None:

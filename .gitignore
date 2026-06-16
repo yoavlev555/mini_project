@@ -11,3 +11,7 @@ results/
 
 # Local optional backlog (not shared via git)
 FUTURE_WORK.md
+
+# Virtual environment
+.venv/
+venv/

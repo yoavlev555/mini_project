@@ -67,7 +67,7 @@ def write_png(rows: list[dict]) -> None:
 
     plt.figure(figsize=(8, 5))
     plt.plot(ns, actual, "o-", label="actual spanner size")
-    plt.plot(ns, bound, "s--", label="paper estimate (c=3)")
+    plt.plot(ns, bound, "s--", label="paper estimate")
     plt.xlabel("n (complete graph K_n)")
     plt.ylabel("edge count")
     plt.title(f"Spanner size vs paper estimate (t={T})")

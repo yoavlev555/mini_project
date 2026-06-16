@@ -136,26 +136,22 @@ n, stream = grid_stream(rows=8, cols=8, seed=0)
 All generators return edges in a **random order** (simulating the streaming
 model where edges arrive in an arbitrary permutation).
 
-### `verify_spanner` and `verify_spanner_all_pairs`
+### `verify_spanner`
 
 **Edge check** (`verify_spanner`): for every edge in the original graph, verifies
-`dist_H(u, v) <= 2t-1`.
-
-**All-pairs check** (`verify_spanner_all_pairs`): for every connected pair
-`(u, v)`, verifies `dist_H(u, v) <= (2t-1) * dist_G(u, v)`. Used in `demo.py`
-when `n <= 200`.
+`dist_H(u, v) <= 2t-1`. By the triangle inequality this is sufficient to
+guarantee the `(2t-1)`-stretch for *all* vertex pairs.
 
 ```python
-from streaming_spanner import verify_spanner, verify_spanner_all_pairs
+from streaming_spanner import verify_spanner
 
 is_valid, max_dist = verify_spanner(H, stream, t)
-all_valid, max_ratio = verify_spanner_all_pairs(H, stream, n, t)
 ```
 
 ### `theoretical_spanner_bound`
 
-Returns an illustrative paper size estimate (constant `c=3`) for comparing
-actual spanner size to Corollary 3.6 — not a proof certificate.
+Returns an illustrative paper size estimate (bare formula, leading constant 1)
+for comparing actual spanner size to Corollary 3.6 — not a proof certificate.
 
 ```python
 from streaming_spanner import theoretical_spanner_bound
@@ -183,9 +179,8 @@ Expected output (results are randomized, but all checks should PASS):
     n=15, t=2, guaranteed stretch <= 3, p~0.4249
     stream size       : 105
     spanner size      : 55  (tree=12, cross=43, dropped=50)
-    paper estimate    : ~60  (ratio actual/estimate = 0.917)
+    paper estimate    : ~191  (ratio actual/estimate = 0.288)
     edge stretch check: PASS  (max dist for adjacent pairs = 2)
-    all-pairs check   : PASS  (max stretch ratio = 1.000)
   ...
 ```
 
@@ -218,8 +213,7 @@ print(algo.stats())
 #  'cross_edges': 71, 'dropped_edges': 103}
 
 valid, max_d = verify_spanner(H, stream, t)
-all_valid, max_ratio = verify_spanner_all_pairs(H, stream, n, t)
-print(f"Edge check: {valid}, all-pairs: {all_valid}, max ratio: {max_ratio:.3f}")
+print(f"Edge check: {valid}, max stretch distance: {max_d}")
 ```
 
 ---
