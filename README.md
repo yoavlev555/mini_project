@@ -120,7 +120,7 @@ print(algo.stats())                 # print summary statistics
 Four graph types for experimentation:
 
 ```python
-from streaming_spanner import (
+from stream_generators import (
     complete_graph_stream,  # K_n — all n(n-1)/2 edges
     erdos_renyi_stream,     # G(n, m) — random graph with m edges
     path_stream,            # path graph 1-2-3-...-n
@@ -136,26 +136,22 @@ n, stream = grid_stream(rows=8, cols=8, seed=0)
 All generators return edges in a **random order** (simulating the streaming
 model where edges arrive in an arbitrary permutation).
 
-### `verify_spanner` and `verify_spanner_all_pairs`
+### `verify_spanner`
 
 **Edge check** (`verify_spanner`): for every edge in the original graph, verifies
-`dist_H(u, v) <= 2t-1`.
-
-**All-pairs check** (`verify_spanner_all_pairs`): for every connected pair
-`(u, v)`, verifies `dist_H(u, v) <= (2t-1) * dist_G(u, v)`. Used in `demo.py`
-when `n <= 200`.
+`dist_H(u, v) <= 2t-1`. By the triangle inequality this is sufficient to
+guarantee the `(2t-1)`-stretch for *all* vertex pairs.
 
 ```python
-from streaming_spanner import verify_spanner, verify_spanner_all_pairs
+from streaming_spanner import verify_spanner
 
 is_valid, max_dist = verify_spanner(H, stream, t)
-all_valid, max_ratio = verify_spanner_all_pairs(H, stream, n, t)
 ```
 
 ### `theoretical_spanner_bound`
 
-Returns an illustrative paper size estimate (constant `c=3`) for comparing
-actual spanner size to Corollary 3.6 — not a proof certificate.
+Returns an illustrative paper size estimate (bare formula, leading constant 1)
+for comparing actual spanner size to Corollary 3.6 — not a proof certificate.
 
 ```python
 from streaming_spanner import theoretical_spanner_bound
@@ -169,15 +165,23 @@ estimate = theoretical_spanner_bound(n=100, t=2)
 
 Step-by-step visual simulator for Algorithm 1: you choose **n**, **t**, and **seed**, then click two vertices to stream an edge and see **tree / cross / drop** in real time.
 
+There is **no backend**. The real `streaming_spanner.py` runs directly in the
+browser via [Pyodide](https://pyodide.org) (CPython compiled to WebAssembly), so
+the simulator uses the exact same algorithm as everything else — no second
+implementation. You only need to serve the folder as static files (the page
+fetches `streaming_spanner.py`, which browsers block over `file://`):
+
 ```bash
-cd web
-npm install
-npm run dev
+python -m http.server 8000      # any static file server works
 ```
 
-Open the URL shown (usually `http://localhost:5173`). Green solid = tree edge, red dashed = cross edge; dropped edges appear in the log only.
+Open `http://localhost:8000`. The first load downloads Pyodide (a few MB) and
+takes a few seconds; after that it runs locally. Green solid = tree edge, red
+dashed = cross edge; dropped edges appear in the log only.
 
-The UI uses a TypeScript port of `StreamingSpanner` (`web/src/algorithm/streamingSpanner.ts`) aligned with the Python implementation.
+The UI (`index.html`, `app.js`, `styles.css`) is plain HTML/JS. The only Python
+in `app.js` is a thin glue layer exposing `start` / `edge` / `reset` — all
+algorithm logic stays in `streaming_spanner.py`.
 
 ---
 
@@ -198,12 +202,14 @@ Expected output (results are randomized, but all checks should PASS):
   Complete K_15, t=2
     n=15, t=2, guaranteed stretch <= 3, p~0.4249
     stream size       : 105
-    spanner size      : 55  (tree=12, cross=43, dropped=50)
-    paper estimate    : ~60  (ratio actual/estimate = 0.917)
+    spanner size      : 68  (tree=13, cross=55, dropped=37)
+    paper estimate    : ~191  (ratio actual/estimate = 0.356)
     edge stretch check: PASS  (max dist for adjacent pairs = 2)
-    all-pairs check   : PASS  (max stretch ratio = 1.000)
   ...
 ```
+
+Experiment scenarios are declared as data in `scenarios.json` and loaded by
+`demo.py` via the `Scenario` dataclass in `scenarios.py`.
 
 ### Plotting spanner size vs n
 
@@ -219,7 +225,8 @@ Writes `results/spanner_sizes.csv`. If matplotlib is installed
 ## Example Usage
 
 ```python
-from streaming_spanner import StreamingSpanner, complete_graph_stream, verify_spanner
+from streaming_spanner import StreamingSpanner, verify_spanner
+from stream_generators import complete_graph_stream
 
 # Build a 3-spanner of K_20
 n, t = 20, 2
@@ -229,13 +236,12 @@ algo = StreamingSpanner(n, t, seed=0)
 H = algo.run(stream)
 
 print(algo.stats())
-# {'n': 20, 't': 2, 'stretch_bound': 3, 'p': 0.386...,
-#  'edges_seen': 190, 'spanner_size': 87, 'tree_edges': 16,
-#  'cross_edges': 71, 'dropped_edges': 103}
+# {'n': 20, 't': 2, 'stretch_bound': 3, 'p': 0.387..., 'edges_seen': 190,
+#  'spanner_size': 90, 'theoretical_bound': 309, 'bound_ratio': 0.291,
+#  'tree_edges': 15, 'cross_edges': 75, 'dropped_edges': 100}
 
 valid, max_d = verify_spanner(H, stream, t)
-all_valid, max_ratio = verify_spanner_all_pairs(H, stream, n, t)
-print(f"Edge check: {valid}, all-pairs: {all_valid}, max ratio: {max_ratio:.3f}")
+print(f"Edge check: {valid}, max stretch distance: {max_d}")
 ```
 
 ---
@@ -246,11 +252,13 @@ print(f"Edge check: {valid}, all-pairs: {all_valid}, max ratio: {max_ratio:.3f}"
 |------|-------------|
 | `streaming_spanner.py` | `StreamingSpanner` class + verification helpers |
 | `stream_generators.py` | Graph generators: complete, Erdős–Rényi, grid, path |
-| `demo.py` | Batch regression experiments (fixed suite) |
-| `web/` | Interactive step-by-step simulator (React + Vite) |
+| `demo.py` | Batch experiments over the scenarios |
+| `scenarios.json` | Experiment scenarios (data) |
+| `scenarios.py` | `Scenario` dataclass + JSON loader |
+| `index.html`, `app.js`, `styles.css` | In-browser simulator (runs `streaming_spanner.py` via Pyodide) |
 | `plot_results.py` | CSV/plot of spanner size vs n on complete graphs |
 | `requirements-dev.txt` | Optional matplotlib for plotting |
-| `Arcticle.pdf` | The original paper (Elkin 2011) |
+| `Article.pdf` | The original paper (Elkin 2011) |
 | `README.md` | This file |
 
 Local-only files (gitignored, not in the repo): `FUTURE_WORK.md` optional
@@ -260,8 +268,11 @@ backlog and `.cursor/skills/` agent skills.
 
 ## Requirements
 
-**Core:** Python 3.7+ standard library only (`demo.py`, `streaming_spanner.py`).
+**Core:** Python 3.7+ standard library only (`demo.py`, `streaming_spanner.py`,
+`scenarios.py`).
 
-**Optional plotting:** `pip install -r requirements-dev.txt` then `python plot_results.py`.
+**Web UI:** no install — serve the folder statically (e.g. `python -m http.server`)
+and open it in a browser. Pyodide loads from a CDN on first run.
 
-**Web UI:** Node.js 18+ for `web/` (`npm install`, `npm run dev`).
+**Optional plotting:** `pip install -r requirements-dev.txt` then
+`python plot_results.py`.

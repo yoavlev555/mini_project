@@ -12,17 +12,9 @@ Usage
 from streaming_spanner import (
     StreamingSpanner,
     verify_spanner,
-    verify_spanner_all_pairs,
 )
 
-from stream_generators import (
-    complete_graph_stream,
-    erdos_renyi_stream,
-    grid_stream,
-    path_stream,
-)
-
-FULL_VERIFY_MAX_N = 200
+from scenarios import load_scenarios
 
 
 def run_experiment(
@@ -31,7 +23,6 @@ def run_experiment(
     t: int,
     stream: list,
     seed: int = 0,
-    full_verify: bool = True,
 ) -> None:
     """Run one experiment and print formatted results."""
     algo = StreamingSpanner(n, t, seed=seed)
@@ -58,18 +49,6 @@ def run_experiment(
         f"  (max dist for adjacent pairs = {max_edge_dist})"
     )
 
-    if full_verify and n <= FULL_VERIFY_MAX_N:
-        all_valid, max_ratio = verify_spanner_all_pairs(H, stream, n, t)
-        all_status = "PASS" if all_valid else "FAIL"
-        print(
-            f"    all-pairs check   : {all_status}"
-            f"  (max stretch ratio = {max_ratio:.3f})"
-        )
-    elif full_verify:
-        print(f"    all-pairs check   : SKIP (n={n} > {FULL_VERIFY_MAX_N})")
-    else:
-        print("    all-pairs check   : SKIP (disabled)")
-
 
 def main() -> None:
     print("=" * 64)
@@ -77,34 +56,9 @@ def main() -> None:
     print("  (2t-1)-spanner, one pass, O(1) per edge")
     print("=" * 64)
 
-    # --- Complete graphs ---
-    run_experiment("Complete K_15, t=2", 15, 2, complete_graph_stream(15, seed=1))
-    run_experiment("Complete K_30, t=2", 30, 2, complete_graph_stream(30, seed=2))
-    run_experiment("Complete K_30, t=3", 30, 3, complete_graph_stream(30, seed=3))
-    run_experiment("Complete K_50, t=2", 50, 2, complete_graph_stream(50, seed=10))
-
-    # --- Path graphs ---
-    run_experiment("Path P_30, t=2", 30, 2, path_stream(30, seed=11))
-    run_experiment("Path P_50, t=2", 50, 2, path_stream(50, seed=12))
-
-    # --- Grid graphs ---
-    n, s = grid_stream(8, 8, seed=4)
-    run_experiment("8x8 grid, t=2", n, 2, s)
-    n, s = grid_stream(8, 8, seed=5)
-    run_experiment("8x8 grid, t=3", n, 3, s)
-    n, s = grid_stream(10, 10, seed=6)
-    run_experiment("10x10 grid, t=2", n, 2, s)
-
-    # --- Random graphs ---
-    run_experiment(
-        "Erdos-Renyi G(100, 500), t=2", 100, 2, erdos_renyi_stream(100, 500, seed=7)
-    )
-    run_experiment(
-        "Erdos-Renyi G(100, 500), t=3", 100, 3, erdos_renyi_stream(100, 500, seed=8)
-    )
-    run_experiment(
-        "Erdos-Renyi G(200, 1000), t=2", 200, 2, erdos_renyi_stream(200, 1000, seed=9)
-    )
+    for scenario in load_scenarios():
+        n, stream = scenario.build()
+        run_experiment(scenario.name, n, scenario.t, stream, seed=scenario.seed)
 
     print()
 

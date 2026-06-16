@@ -9,10 +9,9 @@ __pycache__/
 # Generated experiment output
 results/
 
-# Web UI
-web/node_modules/
-web/dist/
-web/.vite/
-
 # Local optional backlog (not shared via git)
 FUTURE_WORK.md
+
+# Virtual environment
+.venv/
+venv/
