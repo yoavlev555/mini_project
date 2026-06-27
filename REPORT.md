@@ -1,7 +1,7 @@
 # Experimental Analysis: Elkin 2011 Streaming $(2t-1)$-Spanner Algorithm
 
 **Course:** Mini Project - Streaming Spanner Algorithm\
-**Authors:** Lior Baumel & Yoav Levin  
+**Authors:** Lior Baumoel & Yoav Levin  
 **Date:** June 2026  
 
 ---
