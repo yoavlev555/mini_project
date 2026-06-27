@@ -1,17 +1,21 @@
 [
-  {"name": "Complete K_15, t=2", "graph": "complete", "t": 2, "seed": 1, "params": {"n": 15}},
-  {"name": "Complete K_30, t=2", "graph": "complete", "t": 2, "seed": 2, "params": {"n": 30}},
-  {"name": "Complete K_30, t=3", "graph": "complete", "t": 3, "seed": 3, "params": {"n": 30}},
-  {"name": "Complete K_50, t=2", "graph": "complete", "t": 2, "seed": 10, "params": {"n": 50}},
+  {"name": "Complete K_10, t=2",  "graph": "complete", "t": 2, "seed": 1, "params": {"n": 10}},
+  {"name": "Complete K_15, t=2",  "graph": "complete", "t": 2, "seed": 2, "params": {"n": 15}},
+  {"name": "Complete K_20, t=2",  "graph": "complete", "t": 2, "seed": 3, "params": {"n": 20}},
+  {"name": "Complete K_30, t=2",  "graph": "complete", "t": 2, "seed": 4, "params": {"n": 30}},
+  {"name": "Complete K_30, t=3",  "graph": "complete", "t": 3, "seed": 5, "params": {"n": 30}},
+  {"name": "Complete K_50, t=2",  "graph": "complete", "t": 2, "seed": 6, "params": {"n": 50}},
+  {"name": "Complete K_75, t=2",  "graph": "complete", "t": 2, "seed": 7, "params": {"n": 75}},
+  {"name": "Complete K_100, t=2", "graph": "complete", "t": 2, "seed": 8, "params": {"n": 100}},
 
-  {"name": "Path P_30, t=2", "graph": "path", "t": 2, "seed": 11, "params": {"n": 30}},
-  {"name": "Path P_50, t=2", "graph": "path", "t": 2, "seed": 12, "params": {"n": 50}},
+  {"name": "Path P_30, t=2",  "graph": "path", "t": 2, "seed": 9, "params": {"n": 30}},
+  {"name": "Path P_50, t=2",  "graph": "path", "t": 2, "seed": 10, "params": {"n": 50}},
 
-  {"name": "8x8 grid, t=2", "graph": "grid", "t": 2, "seed": 4, "params": {"rows": 8, "cols": 8}},
-  {"name": "8x8 grid, t=3", "graph": "grid", "t": 3, "seed": 5, "params": {"rows": 8, "cols": 8}},
-  {"name": "10x10 grid, t=2", "graph": "grid", "t": 2, "seed": 6, "params": {"rows": 10, "cols": 10}},
+  {"name": "8x8 grid, t=2",   "graph": "grid", "t": 2, "seed": 11, "params": {"rows": 8,  "cols": 8}},
+  {"name": "8x8 grid, t=3",   "graph": "grid", "t": 3, "seed": 12, "params": {"rows": 8,  "cols": 8}},
+  {"name": "10x10 grid, t=2", "graph": "grid", "t": 2, "seed": 13, "params": {"rows": 10, "cols": 10}},
 
-  {"name": "Erdos-Renyi G(100, 500), t=2", "graph": "erdos_renyi", "t": 2, "seed": 7, "params": {"n": 100, "m": 500}},
-  {"name": "Erdos-Renyi G(100, 500), t=3", "graph": "erdos_renyi", "t": 3, "seed": 8, "params": {"n": 100, "m": 500}},
-  {"name": "Erdos-Renyi G(200, 1000), t=2", "graph": "erdos_renyi", "t": 2, "seed": 9, "params": {"n": 200, "m": 1000}}
+  {"name": "Erdos-Renyi G(100, 500), t=2",  "graph": "erdos_renyi", "t": 2, "seed": 14, "params": {"n": 100, "m": 500}},
+  {"name": "Erdos-Renyi G(100, 500), t=3",  "graph": "erdos_renyi", "t": 3, "seed": 15, "params": {"n": 100, "m": 500}},
+  {"name": "Erdos-Renyi G(200, 1000), t=2", "graph": "erdos_renyi", "t": 2, "seed": 16, "params": {"n": 200, "m": 1000}}
 ]
