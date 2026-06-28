@@ -2,7 +2,7 @@
 
 Implementation of the Elkin 2011 streaming (2t−1)-spanner algorithm (Sections 3.1–3.4).
 
-**Authors:** Lior Baumel & Yoav Levin
+**Authors:** Lior Baumoel & Yoav Levin
 
 ---
 
