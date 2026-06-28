@@ -8,8 +8,9 @@ Core implementation of Elkin 2011 (Sections 3.1–3.4):
     ACM Trans. Algor. 7, 2, Article 20.
 
 Contains:
-  - StreamingSpanner : the streaming algorithm (Algorithm 1)
-  - verify_spanner   : BFS-based stretch verifier
+  - StreamingSpanner           : the streaming algorithm (Algorithm 1)
+  - verify_spanner             : BFS stretch check on adjacent pairs
+  - theoretical_spanner_bound  : illustrative paper size estimate
 """
 
 from __future__ import annotations
@@ -183,22 +184,42 @@ class StreamingSpanner:
     def stats(self) -> dict:
         """Return a summary of algorithm statistics."""
         c = self._cnt
+        size = len(self.spanner())
+        bound = theoretical_spanner_bound(self.n, self.t)
         return {
-            'n':             self.n,
-            't':             self.t,
-            'stretch_bound': 2 * self.t - 1,
-            'p':             round(self.p, 6),
-            'edges_seen':    c['seen'],
-            'spanner_size':  len(self.spanner()),
-            'tree_edges':    c['tree'],
-            'cross_edges':   c['cross'],
-            'dropped_edges': c['drop'],
+            'n':                 self.n,
+            't':                 self.t,
+            'stretch_bound':     2 * self.t - 1,
+            'p':                 round(self.p, 6),
+            'edges_seen':        c['seen'],
+            'spanner_size':      size,
+            'theoretical_bound': bound,
+            'bound_ratio':       round(size / bound, 3) if bound else 0.0,
+            'tree_edges':        c['tree'],
+            'cross_edges':       c['cross'],
+            'dropped_edges':     c['drop'],
         }
 
 
 # ============================================================================
-# verify_spanner — BFS stretch checker
+# Theoretical bounds and verification
 # ============================================================================
+
+_INF = 10 ** 9
+
+
+def theoretical_spanner_bound(n: int, t: int) -> int:
+    """
+    Illustrative whp size estimate from Corollary 3.6 (Elkin 2011):
+
+        O(t * n^(1 + 1/t) * (log n)^(1 - 1/t))
+
+    Uses the bare formula (leading constant 1) since big-O hides the true
+    constant. For demo/report comparison only — not a proof certificate.
+    """
+    log_n = math.log(max(n, 2))
+    return max(1, int(t * (n ** (1 + 1 / t)) * (log_n ** (1 - 1 / t))))
+
 
 def verify_spanner(
     spanner: Set[Tuple[int, int]],
@@ -241,7 +262,7 @@ def verify_spanner(
                 if nb not in visited:
                     visited.add(nb)
                     q.append((nb, d + 1))
-        return 10 ** 9  # disconnected
+        return _INF  # disconnected
 
     target = 2 * t - 1
     max_d = 0

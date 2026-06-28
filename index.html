@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elkin Streaming Spanner — Simulator</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Setup screen -->
+    <div class="panel" id="setup-screen">
+      <h1>Elkin Streaming Spanner — Simulator</h1>
+      <p class="hint">
+        Set parameters, then add edges one at a time and watch Algorithm 1
+        decide tree / cross / drop. The real Python <code>streaming_spanner.py</code>
+        runs in your browser (via Pyodide) — no backend.
+      </p>
+      <div class="setup-form">
+        <div class="field">
+          <label for="n">Vertices n (2-30)</label>
+          <input id="n" type="number" min="2" max="30" value="7" />
+        </div>
+        <div class="field">
+          <label for="t">Stretch param t</label>
+          <input id="t" type="number" min="1" max="10" value="2" />
+        </div>
+        <div class="field">
+          <label for="seed">Random seed</label>
+          <input id="seed" type="number" value="0" />
+        </div>
+        <button type="button" id="start-btn" disabled>Loading Python…</button>
+      </div>
+    </div>
+
+    <!-- Simulation screen -->
+    <div class="panel" id="sim-screen" hidden>
+      <div class="header">
+        <h1 id="sim-title"></h1>
+        <div>
+          <button type="button" class="secondary" id="reset-btn">Reset</button>
+          <button type="button" class="secondary" id="change-btn">Change params</button>
+        </div>
+      </div>
+      <p class="hint">Click one vertex, then another, to stream an edge between them.</p>
+      <svg class="graph" id="graph" viewBox="0 0 800 400"></svg>
+      <div class="bottom">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>r</th><th>P</th><th>B</th><th>L</th><th>M</th></tr>
+            </thead>
+            <tbody id="state-body"></tbody>
+          </table>
+        </div>
+        <div class="log-wrap" id="log"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
